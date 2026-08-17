@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model City {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  state        String
+  lat          Float
+  lng          Float
+  pincodes     String   // Comma separated list of pincodes/neighborhoods
+  shops        Shop[]
+  orders       Order[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String   @default("CUSTOMER") // CUSTOMER, RETAILER, ADMIN
+  shopId    String?
+  shop      Shop?    @relation(fields: [shopId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Shop {
+  id            String          @id @default(cuid())
+  name          String
+  slug          String          @unique
+  address       String
+  cityId        String
+  city          City            @relation(fields: [cityId], references: [id])
+  pincode       String
+  lat           Float
+  lng           Float
+  phone         String
+  openingHours  String          @default("08:00 AM - 10:00 PM")
+  verified      Boolean         @default(true)
+  rating        Float           @default(4.5)
+  image         String?
+  users         User[]
+  inventories   ShopInventory[]
+  orders        Order[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Category {
+  id       String          @id @default(cuid())
+  name     String          @unique
+  slug     String          @unique
+  icon     String          @default("ShoppingBag")
+  products MasterProduct[]
+}
+
+model MasterProduct {
+  id          String          @id @default(cuid())
+  name        String
+  brand       String
+  sku         String          @unique
+  unit        String          // e.g. "500ml", "1 kg", "Pack of 6"
+  description String?
+  image       String
+  categoryId  String
+  category    Category        @relation(fields: [categoryId], references: [id])
+  inventories ShopInventory[]
+  orderItems  OrderItem[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model ShopInventory {
+  id            String        @id @default(cuid())
+  shopId        String
+  shop          Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  productId     String
+  product       MasterProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  price         Float
+  stockQuantity Int           @default(10)
+  isAvailable   Boolean       @default(true)
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([shopId, productId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  customerName    String
+  customerPhone   String
+  deliveryAddress String
+  cityId          String
+  city            City        @relation(fields: [cityId], references: [id])
+  shopId          String
+  shop            Shop        @relation(fields: [shopId], references: [id])
+  totalAmount     Float
+  paymentMethod   String      @default("Cash on Delivery") // COD, UPI, Card
+  status          String      @default("PENDING") // PENDING, ACCEPTED, READY, OUT_FOR_DELIVERY, DELIVERED, CANCELLED
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id           String        @id @default(cuid())
+  orderId      String
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      MasterProduct @relation(fields: [productId], references: [id])
+  quantity     Int
+  pricePerUnit Float
+  totalPrice   Float
+}
