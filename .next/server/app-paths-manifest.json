@@ -1,10 +1,4 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
-  "/shops/[id]/page": "app/shops/[id]/page.js",
-  "/api/cities/route": "app/api/cities/route.js",
-  "/api/shops/route": "app/api/shops/route.js",
-  "/api/products/route": "app/api/products/route.js",
-  "/api/search/route": "app/api/search/route.js",
-  "/api/shops/[id]/route": "app/api/shops/[id]/route.js"
+  "/shops/[id]/page": "app/shops/[id]/page.js"
 }
